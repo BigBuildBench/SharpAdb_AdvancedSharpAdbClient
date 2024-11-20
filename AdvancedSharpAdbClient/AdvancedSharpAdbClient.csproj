@@ -1,0 +1,134 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <FullTargets>True</FullTargets>
+    <ImportAsync>True</ImportAsync>
+    <Nullable>Enable</Nullable>
+    <PackageIcon>Icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(IsStandard)' == 'True'">
+      <PropertyGroup>
+        <PackageId>$(AssemblyName).Standard</PackageId>
+        <TargetFrameworks>netstandard1.3;netstandard2.0;netstandard2.1;net6.0</TargetFrameworks>
+        <TargetFrameworks Condition="'$(IsWindows)' == 'True'">$(TargetFrameworks);net2.0;net4.5</TargetFrameworks>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(FullTargets)' == 'True'">
+      <PropertyGroup>
+        <NoWarn>$(NoWarn);NU1603;NU1605;NU1902;NU1903</NoWarn>
+        <TargetFrameworks>net6.0;net8.0;netcoreapp2.1;netcoreapp3.1;netstandard1.3;netstandard2.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks Condition="'$(IsWindows)' == 'True'">$(TargetFrameworks);net2.0;net3.5-client;net4.0-client;net4.5;net4.6.1;net4.8;net6.0-windows10.0.17763.0;net8.0-windows10.0.17763.0</TargetFrameworks>
+        <TargetFrameworks Condition="'$(GITHUB_ACTIONS)' != 'True' and '$(IsWindows)' == 'True'">$(TargetFrameworks);netcore5.0;uap10.0;uap10.0.15138.0</TargetFrameworks>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <TargetFrameworks>net8.0;netcoreapp3.1;netstandard1.3;netstandard2.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks Condition="'$(IsWindows)' == 'True'">$(TargetFrameworks);net2.0;net3.5-client;net4.5;net4.8;net8.0-windows10.0.17763.0</TargetFrameworks>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <PropertyGroup>
+    <PolySharpIncludeGeneratedTypes>
+      System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute;
+      System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute;
+      System.Diagnostics.CodeAnalysis.MemberNotNullAttribute;
+      System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
+      System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute;
+      System.Diagnostics.CodeAnalysis.NotNullAttribute;
+      System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
+      System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
+      System.Diagnostics.StackTraceHiddenAttribute;
+      System.Index;
+      System.Range;
+      System.Runtime.CompilerServices.CallerArgumentExpressionAttribute;
+      System.Runtime.CompilerServices.IsExternalInit;
+      System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute
+    </PolySharpIncludeGeneratedTypes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'uap10.0'">
+    <TargetPlatformMinVersion>10.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'uap10.0.15138.0'">
+    <TargetPlatformMinVersion>10.0.15138.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AdvancedSharpAdbClient.Tests" />
+    <InternalsVisibleTo Include="AdvancedSharpAdbClient.WinRT" />
+    <InternalsVisibleTo Include="AdvancedSharpAdbClient.Native" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\logo.png" Pack="True" PackagePath="\Icon.png" />
+    <None Include="..\README.md" Pack="True" PackagePath="\README.md"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net2.0'))
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard1.1'))
+                   and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net1.1'))
+                   and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp1.0'))
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard1.3'))
+                   and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net1.1'))
+
+  <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.0'))
+                   and !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp2.1'))
+  
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))">
+    <DefineConstants>$(DefineConstants);COMP_NETSTANDARD2_1</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">
+    <IsAotCompatible>True</IsAotCompatible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard1.0'))
+                        or ('$(ImportAsync)' == 'True'
+                        and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net3.5-client')))">
+    <DefineConstants>$(DefineConstants);HAS_TASK</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'uap'))
+                         or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0-windows10.0.17763.0'))">
+    <DefineConstants>$(DefineConstants);HAS_WINRT</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net1.1'))
+                         or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net5.0-windows'))">
+    <DefineConstants>$(DefineConstants);HAS_IMAGING</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net4.7'))
+                         or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp1.0'))
+                         or (!($([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)')) == '.NETFramework')
+                         and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.0')))">
+    <DefineConstants>$(DefineConstants);HAS_VALUETUPLE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp2.1'))
+                         or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'uap10.0.15138.0'))
+                         or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))">
+    <DefineConstants>$(DefineConstants);HAS_FULLSTRING</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp2.1'))
+                         or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.1'))">
+    <DefineConstants>$(DefineConstants);HAS_BUFFERS</DefineConstants>
+    <PolySharpIncludeGeneratedTypes>$(PolySharpIncludeGeneratedTypes);System.Runtime.CompilerServices.CollectionBuilderAttribute</PolySharpIncludeGeneratedTypes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net1.1'))
+                         or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp1.0'))
+                         or $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netstandard2.0'))">
+    <DefineConstants>$(DefineConstants);HAS_PROCESS;HAS_SERIALIZATION</DefineConstants>
+  </PropertyGroup>
+
+</Project>

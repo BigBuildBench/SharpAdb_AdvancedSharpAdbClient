@@ -1,0 +1,90 @@
+name: build and test
+
+on:
+  push:
+    branches:
+      - main
+      - 'version/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/build-and-test.yml'
+      - 'AdvancedSharpAdbClient**'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x' # The .NET SDK version to use
+
+jobs:
+  build-and-test:
+    name: build-and-test-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core App
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Dependencies
+        run: dotnet restore -p:FullTargets=false
+
+      - name: Build
+        run: dotnet build --no-restore -p:FullTargets=false
+
+      - name: Test
+        run: dotnet test --no-restore --blame-hang-timeout 1m -p:FullTargets=false
+
+  pack-and-publish:
+    name: pack-and-publish
+    needs: build-and-test
+    runs-on: windows-latest
+    env:
+      Solution_Name: AdvancedSharpAdbClient/AdvancedSharpAdbClient.csproj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core App
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+
+      - name: Setup NuGet.exe
+        uses: NuGet/setup-nuget@v2
+        
+      - name: Install Dependencies
+        run: msbuild $env:Solution_Name /t:Restore /p:FullTargets=true /p:GITHUB_ACTIONS=false
+
+      - name: Pack
+        run: msbuild $env:Solution_Name /t:Pack /p:FullTargets=true /p:GITHUB_ACTIONS=false /p:Configuration=Release /p:PackageOutputPath=../nugets /p:VersionSuffix=build.${{ github.run_number }}.${{ github.run_attempt }}
+
+      - name: Publish
+        if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+        run: dotnet nuget push nugets/**.nupkg --source $env:NUGET_SOURCE --skip-duplicate --api-key $env:GITHUB_TOKEN
+        env:
+          NUGET_SOURCE: https://nuget.pkg.github.com/SharpAdb/index.json
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nuget Package
+          path: nugets/**

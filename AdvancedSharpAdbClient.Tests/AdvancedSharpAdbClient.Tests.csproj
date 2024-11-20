@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+  
+  <Choose>
+    <When Condition="'$(IsWindows)' == 'True' and '$(IsStandard)' != 'True'">
+      <PropertyGroup>
+        <TargetFramework>net8.0-windows10.0.17763.0</TargetFramework>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup>
+    <None Update="Assets\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
